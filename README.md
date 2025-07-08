@@ -1,8 +1,3 @@
-Great! Here's a **professional and clean `README.md`** for your repository [`todo-api-go-with-postgre-redis`](https://github.com/sanyam-harness/todo-api-go-with-postgre-redis):
-
----
-
-````markdown
 # TODO API in Go with PostgreSQL and Redis
 
 A production-ready TODO REST API built using **Go**, **PostgreSQL** for persistent storage, and **Redis** for high-performance caching during list operations.  
