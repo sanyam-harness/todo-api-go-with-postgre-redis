@@ -10,14 +10,22 @@ import (
 
 type Handler struct {
 	service *TodoService
+	cache   *RedisClient
 }
 
-func NewHandler(service *TodoService) *Handler {
-	return &Handler{service: service}
+func NewHandler(service *TodoService, cache *RedisClient) *Handler {
+	return &Handler{service: service, cache: cache}
 }
 
 func (h *Handler) ListTodos(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(h.service.ListTodos())
+	todos, err := h.service.ListTodos()
+	if err != nil {
+		http.Error(w, "Failed to fetch todos", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(todos)
 }
 
 func (h *Handler) CreateTodo(w http.ResponseWriter, r *http.Request) {

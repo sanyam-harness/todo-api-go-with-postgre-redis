@@ -3,34 +3,35 @@ package main
 import (
 	"context"
 	"errors"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type TodoService struct{}
-
-func NewTodoService() *TodoService {
-	return &TodoService{}
+type TodoService struct {
+	db *pgxpool.Pool
 }
 
-func (s *TodoService) ListTodos() []*Todo {
-	rows, err := DB.Query(context.Background(), `
-		SELECT id, title, completed, created_at, updated_at
-		FROM todos WHERE deleted = false ORDER BY id
-	`)
-	if err != nil {
-		return nil
-	}
-	defer rows.Close()
+func NewTodoService(db *pgxpool.Pool) *TodoService {
+	return &TodoService{db: db}
+}
 
-	var todos []*Todo
+func (s *TodoService) ListTodos() ([]Todo, error) {
+	rows, err := s.db.Query(context.Background(), "SELECT id, title, completed, deleted, created_at, updated_at FROM todos WHERE deleted = false")
+	if err != nil {
+		return nil, err
+	}
+
+	var todos []Todo
 	for rows.Next() {
 		var t Todo
-		err := rows.Scan(&t.ID, &t.Title, &t.Completed, &t.CreatedAt, &t.UpdatedAt)
+		err := rows.Scan(&t.ID, &t.Title, &t.Completed, &t.Deleted, &t.CreatedAt, &t.UpdatedAt)
 		if err != nil {
-			continue
+			return nil, err
 		}
-		todos = append(todos, &t)
+		todos = append(todos, t)
 	}
-	return todos
+
+	return todos, nil
 }
 
 func (s *TodoService) CreateTodo(todo *Todo) *Todo {
